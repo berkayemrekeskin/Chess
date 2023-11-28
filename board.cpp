@@ -560,7 +560,7 @@ bool Board::attackRook(int x, int y)
             else if(myBoard[x][j].getColor() == "Black")    /*If there is a teammate piece*/
                 break;
             else                                        
-                myBoard[x][j].setUnderAttack(true); /*If it is an empty piece*/
+                myBoard[x][j].setUnderAttack(true); 
         }
     }
 }
