@@ -134,9 +134,9 @@ void Board::checkMove(int xp, int yp, int xn, int yn, string side)
 }
 void Board::movePiece(int xp, int yp, int xn, int yn)
 {
-    myBoard[xn][yn].setTotalPoint(myBoard[xn][yn].getPoint()); /*Get the opp. piece point and decrease from total point of opp. side (if empty than dec. 0 pts)*/
     myBoard[xn][yn] = myBoard[xp][yp];  /*Move to the new coordinate*/
     myBoard[xp][yp] = Pieces("Empty",'.',xp,yp);    /*Make the old coordinate empty*/
+    overallGoodnessScore();
 }
 /*Individual movement functions for pieces*/ /*These functions checks valid move also*/
 void Board::movePawn(int xp, int yp, int xn, int yn, string side)
@@ -242,16 +242,16 @@ void Board::movePawn(int xp, int yp, int xn, int yn, string side)
 }
 void Board::moveRook(int xp, int yp, int xn, int yn, string side)
 {
+    if(side == "White")
+        if(isTherePieceWhite(xn,yn))
+            cout << "Wrong move, white piece exist" << endl;
+    else if(side == "Black")
+        if(isTherePieceBlack(xn,yn))
+            cout << "Wrong move, black piece exist" << endl;
     if(yn != yp)
     {
         int flag = 0;
-        if(side == "White")
-            if(isTherePieceWhite(xn,yn))
-                cout << "Wrong move, white piece exist" << endl;
-        else if(side == "Black")
-            if(isTherePieceBlack(xn,yn))
-                cout << "Wrong move, black piece exist" << endl;
-        else if(xn != xp)
+        if(xn != xp)
             cout << "Wrong move 1" << endl;
         else if(yn > yp && yn < 9 || yn > 0)
         {
@@ -337,7 +337,7 @@ void Board::moveKnight(int xp, int yp, int xn, int yn, string side)
 {
     if(side == "White")
         if(((xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
-            (xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp - 2) || 
+            (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
             (xn == xp + 2 && yn == yp + 1) || (xn == xp - 2 && yn == yp + 1) ||
             (xn == xp + 2 && yn == yp - 1) || (xn == xp - 2 && yn == yp - 1)) && !isTherePieceWhite(xn,yn))
         {
@@ -360,12 +360,12 @@ void Board::moveKnight(int xp, int yp, int xn, int yn, string side)
         else
             cout << "Wrong move" << endl;
 }
-void Board::moveBishop(int xp, int yp, int xn, int yn, string side)
+void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak buna */
 {
     int flag = 0;
     if(abs(xn - xp) != abs(yn - yp))
-        cout << "Wrong move 1" << endl;
-    else if(xn > xp && yn > yp)
+        cout << "Wrong move 1 - B" << endl;
+    if(xn > xp && yn > yp)
     {
         for(int i = xn, j = yn; i > xp, j > yp; i--, j--)
         {
@@ -379,14 +379,18 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side)
             if(side == "Black")
                 if(isTherePieceBlack(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 3" << endl;
                     flag = 1;
                 }
         }
         if(flag == 0)
+        {
             this->movePiece(xp,yp,xn,yn);
+            /*this->checkCheck*/
+            /*this->checkCheckMate*/
+        }
     }
-    else if(xn > xp && yn < yp)
+    if(xn > xp && yn < yp)
     {
         for(int i = xp, j = yn; i < xn, j < yp; i++, j++)
         {
@@ -394,41 +398,49 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side)
             if(side == "White")
                 if(isTherePieceWhite(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 4" << endl;
                     flag = 1;
                 }
             if(side == "Black")
                 if(isTherePieceBlack(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 5" << endl;
                     flag = 1;
                 }
         }
         if(flag == 0)
+        {
             this->movePiece(xp,yp,xn,yn);
+            /*this->checkCheck*/
+            /*this->checkCheckMate*/
+        }
     }
-    else if(xn < xp && yn > yp)
+    if(xn < xp && yn > yp)
     {
-        for(int i = xp, j = yn; i > xn, j > yp; i--, j--)
+        for(int i = xn, j = yn; i < xp, j > yp; i++, j--)
         {
             cout << i << " " << j << endl;
             if(side == "White")
                 if(isTherePieceWhite(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 6" << endl;
                     flag = 1;
                 }
             if(side == "Black")
                 if(isTherePieceBlack(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 7" << endl;
                     flag = 1;
                 }
         }
         if(flag == 0)
+        {
             this->movePiece(xp,yp,xn,yn);
+            /*this->checkCheck*/
+            /*this->checkCheckMate*/
+        }
     }
-    else if(xn < xp && yn < yp)
+    if(xn < xp && yn < yp)
     {
         for(int i = xn, j = yn; i < xp, j < yp; i++, j++)
         {
@@ -436,27 +448,63 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side)
             if(side == "White")
                 if(isTherePieceWhite(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 8" << endl;
                     flag = 1;
                 }
             if(side == "Black")
                 if(isTherePieceBlack(i,j))
                 {
-                    cout << "Wrong move 2" << endl;
+                    cout << "Wrong move 9" << endl;
                     flag = 1;
                 }
         }
         if(flag == 0)
+        {
             this->movePiece(xp,yp,xn,yn);
+            /*this->checkCheck*/
+            /*this->checkCheckMate*/
+        }
     }
 }
 void Board::moveQueen(int xp, int yp, int xn, int yn, string side)
 {
-    
+    if(xp != xn && yn != yp)    /*If it is a bishop move*/
+        moveBishop(xp,yp,xn,yn,side);
+    else if((xp == xn && yn != yp) || (xp != xn && yn == yp))
+        moveRook(xp,yp,xn,yn,side);
 }
 void Board::moveKing(int xp, int yp, int xn, int yn, string side)
 {
-
+    if(side == "White")
+    {
+        if(abs(xn - xp) > 1 || abs(yn - yp) > 1)
+            cout << "Wrong move 1" << endl;
+        else if(isTherePieceWhite(xn,yn))
+            cout << "Wrong move 2" << endl;
+        else if(!((xn == xp + 1 && yn == yp + 1) || (xn == xp - 1 && yn == yp + 1)) && isTherePieceBlack(xn,yn))
+            cout << "Wrong move 3" << endl;
+        else
+        {
+            this->movePiece(xp,yp,xn,yn);
+            /*this->checkCheck*/
+            /*this->checkCheckMate*/
+        }
+    }
+    else if(side == "Black")
+    {
+        if(abs(xn - xp) > 1 || abs(yn - yp) > 1)
+            cout << "Wrong move 1" << endl;
+        else if(isTherePieceBlack(xn,yn))
+            cout << "Wrong move 2" << endl;
+        else if(!((xn == xp + 1 && yn == yp - 1) || (xn == xp - 1 && yn == yp - 1)) && isTherePieceWhite(xn,yn))
+            cout << "Wrong move 3" << endl;
+        else
+        {
+            this->movePiece(xp,yp,xn,yn);
+            /*this->checkCheck*/
+            /*this->checkCheckMate*/
+        }
+    }
 }
 void Board::promotePawn(int xp, int yp)
 {
@@ -490,93 +538,442 @@ void Board::promotePawn(int xp, int yp)
         }
 }
 /*Checking the under attack conditions*/
-bool Board::attackPawn(int x, int y)
+void Board::attackPawn(int x, int y)
 {
-    if(myBoard[x][y].getColor() == "White")
+    if(myBoard[x][y].getColor() == "White") /*(0,1) -> (0,3) threads (1,4)*/
     {
-        if(myBoard[x+1][y+1].getColor() != "White")
-            myBoard[x+1][y+1].setUnderAttack(true);
-        if(myBoard[x-1][y+1].getColor() != "White")
-            myBoard[x-1][y+1].setUnderAttack(true);
+        if(x+1 < 8 && y+1 < 8)
+            if(myBoard[x+1][y+1].getColor() != "White")
+                myBoard[x+1][y+1].setUnderAttack(true);
+        if(x-1 >= 0 && y+1 < 8)
+            if(myBoard[x-1][y+1].getColor() != "White")
+                myBoard[x-1][y+1].setUnderAttack(true);  
+        
     }
     else if(myBoard[x][y].getColor() == "Black")
     {
-        if(myBoard[x+1][y+1].getColor() != "Black")
-            myBoard[x+1][y+1].setUnderAttack(true);
-        if(myBoard[x-1][y+1].getColor() != "Black")
-            myBoard[x-1][y+1].setUnderAttack(true);
+        if(x+1 < 8 && y-1 >= 0)
+            if(myBoard[x+1][y-1].getColor() != "Black")
+                myBoard[x+1][y-1].setUnderAttack(true);
+        if(x-1 >= 0 && y-1 >= 0)  
+            if(myBoard[x-1][y-1].getColor() != "Black")
+                myBoard[x-1][y-1].setUnderAttack(true);
     }
 }
-bool Board::attackRook(int x, int y)
+void Board::attackRook(int x, int y)
 {
     if(myBoard[x][y].getColor() == "White")
     {
-        for(int i = 0; i < 8; i++)
+        for(int i = x + 1, j = y; i < 8; i++)   /*From R to right*/
         {
-            if(myBoard[i][y].getColor() == "Black") /*If there is a opponent piece*/
+            if(myBoard[i][j].getColor() == "White")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "Black") /*If there is a opponent piece*/
             {
-                myBoard[i][y].setUnderAttack(true);
+                myBoard[i][j].setUnderAttack(true);
                 break;
             }
-            else if(myBoard[i][y].getColor() == "White")    /*If there is a teammate piece*/
-                break;
             else                                        
-                myBoard[i][y].setUnderAttack(true); /*If it is an empty piece*/
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
         }
-        for(int j = 0; j < 8; j++)
+        for(int i = x - 1, j = y; i >= 0; i--)  /*From R to left*/
         {
-            if(myBoard[x][j].getColor() == "Black") /*If there is a opponent piece*/
+            if(myBoard[i][j].getColor() == "White")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "Black") /*If there is a opponent piece*/
             {
-                myBoard[x][j].setUnderAttack(true);
+                myBoard[i][j].setUnderAttack(true);
                 break;
             }
-            else if(myBoard[x][j].getColor() == "White")    /*If there is a teammate piece*/
-                break;
             else                                        
-                myBoard[x][j].setUnderAttack(true); /*If it is an empty piece*/
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+        for(int i = x, j = y + 1; j < 8; j++)   /*From R to up*/
+        {
+            if(myBoard[i][j].getColor() == "White")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "Black") /*If there is a opponent piece*/
+            {
+                myBoard[i][j].setUnderAttack(true);
+                break;
+            }
+            else                                        
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+        for(int i = x, j = y - 1; j >= 0; j--)   /*From R to down*/
+        {
+            if(myBoard[i][j].getColor() == "White")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "Black") /*If there is a opponent piece*/
+            {
+                myBoard[i][j].setUnderAttack(true);
+                break;
+            }
+            else                                        
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+
+    }
+    else if(myBoard[x][y].getColor() == "Black")
+    {
+         for(int i = x + 1, j = y; i < 8; i++)   /*From R to right*/
+        {
+            if(myBoard[i][j].getColor() == "Black")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "White") /*If there is a opponent piece*/
+            {
+                myBoard[i][j].setUnderAttack(true);
+                break;
+            }
+            else                                        
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+        for(int i = x - 1, j = y; i >= 0; i--)  /*From R to left*/
+        {
+            if(myBoard[i][j].getColor() == "Black")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "White") /*If there is a opponent piece*/
+            {
+                myBoard[i][j].setUnderAttack(true);
+                break;
+            }
+            else                                        
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+        for(int i = x, j = y + 1; j < 8; j++)   /*From R to up*/
+        {
+            if(myBoard[i][j].getColor() == "Black")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "White") /*If there is a opponent piece*/
+            {
+                myBoard[i][j].setUnderAttack(true);
+                break;
+            }
+            else                                        
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+        for(int i = x, j = y - 1; j >= 0; j--)   /*From R to down*/
+        {
+            if(myBoard[i][j].getColor() == "Black")    /*If there is a teammate piece*/
+                break;
+            if(myBoard[i][j].getColor() == "White") /*If there is a opponent piece*/
+            {
+                myBoard[i][j].setUnderAttack(true);
+                break;
+            }
+            else                                        
+                myBoard[i][j].setUnderAttack(true); /*If it is an empty piece*/
+        }
+    }
+}
+void Board::attackKnight(int x, int y)
+{
+    /*      (xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
+            (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
+            (xn == xp + 2 && yn == yp + 1) || (xn == xp - 2 && yn == yp + 1) ||
+            (xn == xp + 2 && yn == yp - 1) || (xn == xp - 2 && yn == yp - 1))   */
+
+    if(myBoard[x][y].getColor() == "White")
+    {
+    
+        if(x+1 < 8 && y+2 < 8)
+        {
+            if(myBoard[x+1][y+2].getColor() != "White")
+                myBoard[x+1][y+2].setUnderAttack(true);
+        }
+        if(x+1 < 8 && y-2 >= 0)
+        {
+            if(myBoard[x+1][y-2].getColor() != "White")
+                myBoard[x+1][y-2].setUnderAttack(true);
+        }
+        if(x-1 >= 0 && y+2 < 8)
+        {
+            if(myBoard[x-1][y+2].getColor() != "White")
+                myBoard[x-1][y+2].setUnderAttack(true);
+        }
+        if(x-1 >= 0 && y-2 >= 0)
+        {
+            if(myBoard[x-1][y-2].getColor() != "White")
+                myBoard[x-1][y-2].setUnderAttack(true);
+        }
+        if(x+2 < 8 && y+1 < 8) 
+        {
+            if(myBoard[x+2][y+1].getColor() != "White")
+                myBoard[x+2][y+1].setUnderAttack(true);
+        }
+        if(x-2 >= 0 && y+1 < 8)
+        {
+            if(myBoard[x-2][y+1].getColor() != "White")
+                myBoard[x-2][y+1].setUnderAttack(true);
+        }    
+        if(x+2 < 8 && y-1 >= 0)
+        {
+            if(myBoard[x+2][y-1].getColor() != "White")
+                myBoard[x+2][y-1].setUnderAttack(true);
+        }
+        if(x-2 >= 0 && y-1 >= 0)
+        {
+            if(myBoard[x-2][y-1].getColor() != "White")
+                myBoard[x-2][y-1].setUnderAttack(true);
         }
     }
     else if(myBoard[x][y].getColor() == "Black")
     {
-        for(int i = 0; i < 8; i++)
+        if(x+1 < 8 && y+2 < 8)
         {
-            if(myBoard[i][y].getColor() == "White") /*If there is a opponent piece*/
-            {
-                myBoard[i][y].setUnderAttack(true);
-                break;
-            }
-            else if(myBoard[i][y].getColor() == "Black")    /*If there is a teammate piece*/
-                break;
-            else                                        
-                myBoard[i][y].setUnderAttack(true); /*If it is an empty piece*/
+            if(myBoard[x+1][y+2].getColor() != "Black")
+                myBoard[x+1][y+2].setUnderAttack(true);
         }
-        for(int j = 0; j < 8; j++)
+        if(x+1 < 8 && y-2 >= 0)
         {
-            if(myBoard[x][j].getColor() == "White") /*If there is a opponent piece*/
-            {
-                myBoard[x][j].setUnderAttack(true);
-                break;
-            }
-            else if(myBoard[x][j].getColor() == "Black")    /*If there is a teammate piece*/
-                break;
-            else                                        
-                myBoard[x][j].setUnderAttack(true); 
+            if(myBoard[x+1][y-2].getColor() != "Black")
+                myBoard[x+1][y-2].setUnderAttack(true);
+        }
+        if(x-1 >= 0 && y+2 < 8)
+        {
+            if(myBoard[x-1][y+2].getColor() != "Black")
+                myBoard[x-1][y+2].setUnderAttack(true);
+        }
+        if(x-1 >= 0 && y-2 >= 0)
+        {
+            if(myBoard[x-1][y-2].getColor() != "Black")
+                myBoard[x-1][y-2].setUnderAttack(true);
+        }
+        if(x+2 < 8 && y+1 < 8) 
+        {
+            if(myBoard[x+2][y+1].getColor() != "Black")
+                myBoard[x+2][y+1].setUnderAttack(true);
+        }
+        if(x-2 >= 0 && y+1 < 8)
+        {
+            if(myBoard[x-2][y+1].getColor() != "Black")
+                myBoard[x-2][y+1].setUnderAttack(true);
+        }    
+        if(x+2 < 8 && y-1 >= 0)
+        {
+            if(myBoard[x+2][y-1].getColor() != "Black")
+                myBoard[x+2][y-1].setUnderAttack(true);
+        }
+        if(x-2 >= 0 && y-1 >= 0)
+        {
+            if(myBoard[x-2][y-1].getColor() != "Black")
+                myBoard[x-2][y-1].setUnderAttack(true);
         }
     }
 }
-
-bool Board::attackKnight(int x, int y)
+void Board::attackBishop(int x, int y)
 {
+    /*White*/
+    if(myBoard[x][y].getColor() == "White")
+    {
+        if(0 <= x < 7 && 0 <= y < 7)
+        {
+            for(int i = x+1, j = y+1; i < 8 && j < 8; i++, j++) /*NE*/
+            {
+                if(myBoard[i][j].getColor() == "White")
+                    break;
+                else if(myBoard[i][j].getColor() == "Black")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+        if(0 <= x < 7 && 0 < y <= 7)
+        {
+            for(int i = x+1, j = y-1; i < 8 && j >= 0; i++, j--) /*SE*/
+            {
+                if(myBoard[i][j].getColor() == "White")
+                    break;
+                else if(myBoard[i][j].getColor() == "Black")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+        if(0 < x <= 7 && 0 <= y < 7)
+        {
+            for(int i = x-1, j = y+1; i >= 0 && j < 8; i--, j++) /*SW*/
+            {
+                if(myBoard[i][j].getColor() == "White")
+                    break;
+                else if(myBoard[i][j].getColor() == "Black")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+        if(0 < x <= 7 && 0 < y <= 7)
+        {
+            for(int i = x-1, j = y-1; i >= 0 && j >= 0; i--, j--) /*SW*/
+            {
+                if(myBoard[i][j].getColor() == "White")
+                    break;
+                else if(myBoard[i][j].getColor() == "Black")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+    }
+
+    /*Black*/
+    else if(myBoard[x][y].getColor() == "Black")
+    {
+        if(0 <= x < 7 && 0 <= y < 7)
+        {
+            for(int i = x+1, j = y+1; i < 8 && j < 8; i++, j++) /*NE*/
+            {
+                if(myBoard[i][j].getColor() == "Black")
+                    break;
+                else if(myBoard[i][j].getColor() == "")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+        if(0 <= x < 7 && 0 < y <= 7)
+        {
+            for(int i = x+1, j = y-1; i < 8 && j >= 0; i++, j--) /*SE*/
+            {
+                if(myBoard[i][j].getColor() == "Black")
+                    break;
+                else if(myBoard[i][j].getColor() == "White")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+        if(0 < x <= 7 && 0 <= y < 7)
+        {
+            for(int i = x-1, j = y+1; i >= 0 && j < 8; i--, j++) /*SW*/
+            {
+                if(myBoard[i][j].getColor() == "Black")
+                    break;
+                else if(myBoard[i][j].getColor() == "White")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+        if(0 < x <= 7 && 0 < y <= 7)
+        {
+            for(int i = x-1, j = y-1; i >= 0 && j >= 0; i--, j--) /*SW*/
+            {
+                if(myBoard[i][j].getColor() == "Black")
+                    break;
+                else if(myBoard[i][j].getColor() == "White")
+                {
+                    myBoard[i][j].setUnderAttack(true);
+                    break;
+                }
+                else
+                    myBoard[i][j].setUnderAttack(true);
+            }
+        }
+    }
 }
-
-bool Board::attakBishop(int x, int y)
+void Board::attackQueen(int x, int y)
 {
+    attackRook(x,y);
 }
-
-bool Board::attackQueen(int x, int y)
+void Board::attackKing(int x, int y)
 {
+    if(myBoard[x][y].getColor() == "White")
+    {
+        if(x+1 < 8 && x-1 >= 0 && y+1 < 8 && y-1 >= 0)
+        {
+            if(myBoard[x+1][y+1].getColor() != "White")
+                myBoard[x+1][y+1].setUnderAttack(true);
+            if(myBoard[x-1][y+1].getColor() != "White")
+                myBoard[x-1][y+1].setUnderAttack(true);
+        }
+    }
+    else if(myBoard[x][y].getColor() == "Black")
+    {
+        if(x+1 < 8 && x-1 >= 0 && y+1 < 8 && y-1 >= 0)
+        {
+            if(myBoard[x+1][y-1].getColor() != "Black")
+                myBoard[x+1][y-1].setUnderAttack(true);
+            if(myBoard[x-1][y-1].getColor() != "Black")
+                myBoard[x-1][y-1].setUnderAttack(true);
+        }
+    }
 }
-
-bool Board::attackKing(int x, int y)
+/*Score function to calculate overall goodness score*/
+void Board::checkDanger()
 {
+    for(int i = 0; i < 8; i++)  /*Check every piece for danger*/
+    {
+        for(int j = 0; j < 8; j++)
+        {
+            if(myBoard[i][j].getType() == 'P' || myBoard[i][j].getType() == 'p')
+                attackPawn(i,j);
+            else if(myBoard[i][j].getType() == 'R' || myBoard[i][j].getType() == 'r')
+                attackRook(i,j);
+            else if(myBoard[i][j].getType() == 'N' || myBoard[i][j].getType() == 'n')
+                attackKnight(i,j);
+            else if(myBoard[i][j].getType() == 'B' || myBoard[i][j].getType() == 'b')
+                attackBishop(i,j);
+            else if(myBoard[i][j].getType() == 'Q' || myBoard[i][j].getType() == 'q')
+                attackQueen(i,j);
+            else if(myBoard[i][j].getType() == 'K' || myBoard[i][j].getType() == 'K')
+                attackKing(i,j);
+        }
+    }
+}
+void Board::overallGoodnessScore()
+{
+    /*Setting scores to 39 at first*/
+    double whiteTotalScore = 39.0;
+    double blackTotalScore = 39.0;
+    checkDanger();
+    /*Searching every piece for underAttack*/
+    cout << endl;
+    for(int i = 0; i < 8; i++)
+    {
+        for(int j = 0; j < 8; j++)
+        {
+            if(myBoard[i][j].getColor() == "White" && myBoard[i][j].getUnderAttack())
+            {
+                whiteTotalScore -= 0.5 * myBoard[i][j].getPoint();
+            }
+            else if(myBoard[i][j].getColor() == "Black" && myBoard[i][j].getUnderAttack())
+            {
+                blackTotalScore -= 0.5 * myBoard[i][j].getPoint();
+            }
+            cout << myBoard[j][7-i].getUnderAttack() << " ";
+        }
+        cout << endl;
+    }
+    cout << "White Score: " << whiteTotalScore << endl;
+    cout << "Black Score: " << blackTotalScore << endl;
+}
+bool Board::checkCheck(int x, int y) const
+{
+    /*check checkmate*/
+}
+bool Board::checkCheckMate(int x, int y)
+{
+    /*isover = 1*/
 }

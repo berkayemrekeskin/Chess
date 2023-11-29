@@ -13,11 +13,10 @@ class Pieces
         int getXCoord() const;
         int getYCoord() const;
         char getType() const;
-        int getPoint() const;
+        double getPoint() const;
         double getSafety() const;
         bool getUnderAttack() const;
         string getColor() const;
-        static int getTotalPoint();
         /*setters*/
         void setType(char type);
         void setXCoord(int x);
@@ -26,19 +25,14 @@ class Pieces
         void setSafety(double safety);
         void setUnderAttack(bool underAttack);
         void setColor(string color);
-        static void setTotalPoint(int point);
-        /*other member functions*/
-        int movePiece(int x, int y);    /*move piece accordingly*/
-        int removePiece(); /*if eaten then remove*/
     private:
         string color;
         int x_coord;   
         int y_coord;
         char type;
-        int point;  /*point of piece*/
+        double point;  /*point of piece*/
         double safety;  /*point of safety of piece*/
         bool isUnderAttack;
-        static int totalPoint;
 };
 class Board 
 {
@@ -56,23 +50,21 @@ class Board
         void moveQueen(int xp, int yp, int xn, int yn, string side);
         void moveKing(int xp, int yp, int xn, int yn, string side);
         /*attack functions*/
-        bool attackPawn(int x, int y);
-        bool attackRook(int x, int y);
-        bool attackKnight(int x, int y);
-        bool attakBishop(int x, int y);
-        bool attackQueen(int x, int y);
-        bool attackKing(int x, int y);
-        /*calculating points of sides*/
-        int calculatePoints();
+        void attackPawn(int x, int y);
+        void attackRook(int x, int y);
+        void attackKnight(int x, int y);
+        void attackBishop(int x, int y);
+        void attackQueen(int x, int y);
+        void attackKing(int x, int y);
         /*while playing*/
         void getMove(string side);
             void checkMove(int xp, int yp, int xn, int yn, string side);    /*if move*/
                 bool checkCheck(int xp, int yp) const;   /*Check if opponent is in Check*/
-                bool checkCheckMate(int xp, int yp) const;   /*Check if opponent is in Check Mate*/
-                    void checkDanger(string side);
+                bool checkCheckMate(int xp, int yp);   /*Check if opponent is in Check Mate*/
+                    void checkDanger();
+                    void overallGoodnessScore();
                 void promotePawn(int xp, int yp); /*Promote pawn if pawn's coordinate according to 0 or 7*/
                 void movePiece(int xp, int yp, int xn, int yn);
-                int overallScore();      
             void suggestMove() const;   /*if suggest*/
                 //int checkDanger(); /*check danger and return the min danger to yourself and max danger to opp.*/
             void saveBoard(string filename) const;  /*if save*/
