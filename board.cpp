@@ -5,6 +5,11 @@
 using namespace std;
 
 /*NOTES*/
+/* Display appropriate error messages and allow the user to correct their input.*/
+/*The next move function should return the board that produces best score*/
+/*BISHOP MOVE SIK GIBI DUZELT ONU*/
+/*CHECKMATE SEG VERIYOR DUZELT ONU*/
+
 /*Constructor*/
 Board::Board() : myBoard(8, vector<Pieces>(8))
 {
@@ -35,6 +40,7 @@ Board::Board() : myBoard(8, vector<Pieces>(8))
         for(int j = 2; j < 6; j++)
             myBoard[i][j] = Pieces("Empty",'.',i,j);
 }
+
 /*General game functions*/
 void Board::playChess() const
 {
@@ -44,9 +50,11 @@ void Board::playChess() const
     int i = 0;
     while(/*!isOver*/ i < 6)
     {
-        chessBoard.getMove("White");   /*Get move for white*/
+        chessBoard.getMove("White");  /*Get move for white*/
+        chessBoard.checkDanger();
         chessBoard.printBoard();
         chessBoard.getMove("Black");   /*Get move for black*/
+        chessBoard.checkDanger();
         chessBoard.printBoard();
         i++;
     }
@@ -65,6 +73,7 @@ void Board::printBoard() const
     cout << "    " << "----------------------" << endl;
     cout << "    " << "a  b  c  d  e  f  g  h" << endl;
 }
+
 /*Bool functions to check pieces*/
 bool Board::isTherePieceWhite(int x, int y) const
 {
@@ -78,6 +87,7 @@ bool Board::isTherePieceBlack(int x, int y) const
         return 1;
     return 0;
 }
+
 /*General movement functions*/
 void Board::getMove(string side) /*Converts the string to coordinates and suggests or saves.*/
 {
@@ -110,27 +120,30 @@ void Board::getMove(string side) /*Converts the string to coordinates and sugges
         yp = input[1] - 49;
         xn = input[2] - 97;
         yn = input[3] - 49;
-        this->checkMove(xp,yp,xn,yn,side);  /*Send the move to the checkMove function*/
+        cout << "Test1" << endl;
+        this->checkValidMove(side,input,xp,yp,xn,yn);
+        cout << "Test2" << endl;
+        this->checkMove(xp,yp,xn,yn);  /*Send the move to the checkMove function*/
     }
 }
-void Board::checkMove(int xp, int yp, int xn, int yn, string side)
+void Board::checkMove(int xp, int yp, int xn, int yn)
 {
     if(yn > 8 || yn < 0 || xn > 8 || xn < 0)
         cout << "Wrong move, out of scope" << endl;
     char type;
     type = myBoard[xp][yp].getType();
     if(type == 'p' || type == 'P')
-        movePawn(xp,yp,xn,yn,side);
+        movePawn(xp,yp,xn,yn);
     else if(type == 'r' || type == 'R')
-        moveRook(xp,yp,xn,yn,side);
+        moveRook(xp,yp,xn,yn);
     else if(type == 'n' || type == 'N')
-        moveKnight(xp,yp,xn,yn,side);
+        moveKnight(xp,yp,xn,yn);
     else if(type == 'b' || type == 'B')
-        moveBishop(xp,yp,xn,yn,side);
+        moveBishop(xp,yp,xn,yn);
     else if(type == 'q' || type == 'Q')
-        moveQueen(xp,yp,xn,yn,side);
+        moveQueen(xp,yp,xn,yn);
     else if(type == 'k' || type == 'K')
-        moveKing(xp,yp,xn,yn,side);
+        moveKing(xp,yp,xn,yn);
 }
 void Board::movePiece(int xp, int yp, int xn, int yn)
 {
@@ -138,10 +151,89 @@ void Board::movePiece(int xp, int yp, int xn, int yn)
     myBoard[xp][yp] = Pieces("Empty",'.',xp,yp);    /*Make the old coordinate empty*/
     overallGoodnessScore();
 }
-/*Individual movement functions for pieces*/ /*These functions checks valid move also*/
-void Board::movePawn(int xp, int yp, int xn, int yn, string side)
+void Board::checkValidMove(string side, string &input,int &xp, int &yp, int &xn, int &yn)
 {
     if(side == "White")
+        {
+            int x, y;
+            for(int i = 0; i < 8; i++)
+            {
+                for(int j = 0; j < 8; j++)
+                {
+                    if(myBoard[i][j].getType() == 'k')
+                    {
+                        x = i;
+                        y = j;
+                        break;
+                    }
+                }
+            }
+            cout << x << " " << y << endl;
+            cout << myBoard[x][y].getUnderAttack() << endl;
+            cout << "Test3" << endl;
+            if(myBoard[x][y].getUnderAttack())
+            {
+                cout << "Test4" << endl;
+                cout << "You are in Check!" << endl;
+                cout << "Enter your move: ";
+                cin >> input;
+                xp = input[0] - 97;
+                yp = input[1] - 49;
+                xn = input[2] - 97;
+                yn = input[3] - 49;
+                while(!checkKingMovement(xp,yp,xn,yn))
+                {
+                    cout << "You entered wrong move!" << endl;
+                    cout << "Enter your move: ";
+                    cin >> input; 
+                }
+            }
+        }
+        else if(side == "Black")
+        {
+            int x, y;
+            for(int i = 0; i < 8; i++)
+            {
+                for(int j = 0; j < 8; j++)
+                {
+                    if(myBoard[i][j].getType() == 'K')
+                    {
+                        x = i;
+                        y = j;
+                        break;
+                    }
+                }
+            }
+            if(checkTheCheck(x,y))
+            {
+                if(checkTheCheckMate(x,y))
+                {
+                    cout << "GAME OVER!!!"; /*BURAYA BAK*/
+                    return ; 
+                }
+                else
+                {   
+                    cout << "You are in Check!" << endl;
+                    cout << "Enter your move: ";
+                        cin >> input;
+                    while(input[0] != x || input[1] != y)
+                    {
+                        cout << "You entered wrong move!" << endl;
+                        cout << "Enter your move: ";
+                        cin >> input; 
+                    }
+                    xp = input[0] - 97;
+                    yp = input[1] - 49;
+                    xn = input[2] - 97;
+                    yn = input[3] - 49;
+                }
+            }
+        }
+}
+/*Individual movement functions for pieces*/ /*These functions checks valid move also*/
+void Board::movePawn(int xp, int yp, int xn, int yn)
+{
+    if(myBoard[xp][yp].getColor() == "White")
     {
         if(yn <= yp)    /*check y-axis same or less*/
             cout << "Wrong move! 1" << endl;
@@ -157,15 +249,11 @@ void Board::movePawn(int xp, int yp, int xn, int yn, string side)
             {
                 this->promotePawn(xp,yp);
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
             }
             else    /*Move if do not eat*/
             {
                 this->promotePawn(xp,yp);
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/    
             }
         }
         else if (yp == 1)
@@ -177,20 +265,12 @@ void Board::movePawn(int xp, int yp, int xn, int yn, string side)
             else if((xn > xp || xn < xp) && !isTherePieceBlack(xn,yn))    /*if pawn moves diagnolly and there is no black piece*/
                 cout << "Wrong move! 7" << endl;
             else if(xn > xp + 1 && xn < xp + 2  && isTherePieceBlack(xn,yn))    /*make the move, eat the piece*/
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
             else    /*make the move*/
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
         }
     }
-    else if(side == "Black")
+    else if(myBoard[xp][yp].getColor() == "Black")
     {
         if(yn >= yp)    /*check y-axis same or higher*/
             cout << "Wrong move! 1" << endl;
@@ -206,16 +286,12 @@ void Board::movePawn(int xp, int yp, int xn, int yn, string side)
             {
                 this->promotePawn(xp,yp);
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
             }
-            else    /*Move if do not eat*/
+            else
             {
                 this->promotePawn(xp,yp);
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
+            }  
         }
         else if (yp == 6)
         {
@@ -226,26 +302,18 @@ void Board::movePawn(int xp, int yp, int xn, int yn, string side)
             else if((xn > xp || xn < xp) && !isTherePieceWhite(xn,yn))    /*if pawn moves diagnolly and there is no white piece*/
                 cout << "Wrong move! 7" << endl;
             else if(xn > xp + 1 && xn < xp + 2  && isTherePieceWhite(xn,yn))    /*make the move, eat the piece*/
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
             else    /*make the move*/
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
         }
     }
 }
-void Board::moveRook(int xp, int yp, int xn, int yn, string side)
+void Board::moveRook(int xp, int yp, int xn, int yn)
 {
-    if(side == "White")
+    if(myBoard[xp][yp].getColor() == "White")
         if(isTherePieceWhite(xn,yn))
             cout << "Wrong move, white piece exist" << endl;
-    else if(side == "Black")
+    else if(myBoard[xp][yp].getColor() == "Black")
         if(isTherePieceBlack(xn,yn))
             cout << "Wrong move, black piece exist" << endl;
     if(yn != yp)
@@ -264,11 +332,7 @@ void Board::moveRook(int xp, int yp, int xn, int yn, string side)
                 }
             }
             if(flag == 0)
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
         }
         else if(yn < yp && yn < 9 || yn > 0)
         {
@@ -281,11 +345,7 @@ void Board::moveRook(int xp, int yp, int xn, int yn, string side)
                 }
             }
             if(flag == 0)
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
         }
         else 
             cout << "Wrong move 4" << endl;
@@ -306,11 +366,7 @@ void Board::moveRook(int xp, int yp, int xn, int yn, string side)
                 }
             }
             if(flag == 0)
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
         }
         else if(xn < xp && xn < 9 || xn > 0)
         {
@@ -323,44 +379,36 @@ void Board::moveRook(int xp, int yp, int xn, int yn, string side)
                 }
             }
             if(flag == 0)
-            {
                 this->movePiece(xp,yp,xn,yn);
-                /*this->checkCheck*/
-                /*this->checkCheckMate*/
-            }
         }
         else 
             cout << "Wrong move 4" << endl;
     }
 }
-void Board::moveKnight(int xp, int yp, int xn, int yn, string side)
+void Board::moveKnight(int xp, int yp, int xn, int yn)
 {
-    if(side == "White")
+    if(myBoard[xp][yp].getColor() == "White")
         if(((xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
             (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
             (xn == xp + 2 && yn == yp + 1) || (xn == xp - 2 && yn == yp + 1) ||
             (xn == xp + 2 && yn == yp - 1) || (xn == xp - 2 && yn == yp - 1)) && !isTherePieceWhite(xn,yn))
         {
             movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
         }
         else
             cout << "Wrong move" << endl;
-    if(side == "Black")
+    if(myBoard[xp][yp].getColor() == "Black")
         if(((xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
             (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
             (xn == xp + 2 && yn == yp + 1) || (xn == xp - 2 && yn == yp + 1) ||
             (xn == xp + 2 && yn == yp - 1) || (xn == xp - 2 && yn == yp - 1)) && !isTherePieceBlack(xn,yn))
         {
             movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
         }
         else
             cout << "Wrong move" << endl;
 }
-void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak buna */
+void Board::moveBishop(int xp, int yp, int xn, int yn) /*bidaha bak buna*/
 {
     int flag = 0;
     if(abs(xn - xp) != abs(yn - yp))
@@ -370,13 +418,13 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak
         for(int i = xn, j = yn; i > xp, j > yp; i--, j--)
         {
             cout << i << " " << j << endl;
-            if(side == "White")
+            if(myBoard[xp][yp].getColor() == "White")
                 if(isTherePieceWhite(i,j))
                 {
                     cout << "Wrong move 2" << endl;
                     flag = 1;
                 }
-            if(side == "Black")
+            if(myBoard[xp][yp].getColor() == "Black")
                 if(isTherePieceBlack(i,j))
                 {
                     cout << "Wrong move 3" << endl;
@@ -384,24 +432,20 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak
                 }
         }
         if(flag == 0)
-        {
             this->movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
-        }
     }
     if(xn > xp && yn < yp)
     {
         for(int i = xp, j = yn; i < xn, j < yp; i++, j++)
         {
             cout << i << " " << j << endl;
-            if(side == "White")
+            if(myBoard[xp][yp].getColor() == "White")
                 if(isTherePieceWhite(i,j))
                 {
                     cout << "Wrong move 4" << endl;
                     flag = 1;
                 }
-            if(side == "Black")
+            if(myBoard[xp][yp].getColor() == "Black")
                 if(isTherePieceBlack(i,j))
                 {
                     cout << "Wrong move 5" << endl;
@@ -409,24 +453,20 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak
                 }
         }
         if(flag == 0)
-        {
             this->movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
-        }
     }
     if(xn < xp && yn > yp)
     {
         for(int i = xn, j = yn; i < xp, j > yp; i++, j--)
         {
             cout << i << " " << j << endl;
-            if(side == "White")
+            if(myBoard[xp][yp].getColor() == "White")
                 if(isTherePieceWhite(i,j))
                 {
                     cout << "Wrong move 6" << endl;
                     flag = 1;
                 }
-            if(side == "Black")
+            if(myBoard[xp][yp].getColor() == "Black")
                 if(isTherePieceBlack(i,j))
                 {
                     cout << "Wrong move 7" << endl;
@@ -434,24 +474,20 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak
                 }
         }
         if(flag == 0)
-        {
             this->movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
-        }
     }
     if(xn < xp && yn < yp)
     {
         for(int i = xn, j = yn; i < xp, j < yp; i++, j++)
         {
             cout << i << " " << j << endl;
-            if(side == "White")
+            if(myBoard[xp][yp].getColor() == "White")
                 if(isTherePieceWhite(i,j))
                 {
                     cout << "Wrong move 8" << endl;
                     flag = 1;
                 }
-            if(side == "Black")
+            if(myBoard[xp][yp].getColor() == "Black")
                 if(isTherePieceBlack(i,j))
                 {
                     cout << "Wrong move 9" << endl;
@@ -459,23 +495,19 @@ void Board::moveBishop(int xp, int yp, int xn, int yn, string side) /*bidaha bak
                 }
         }
         if(flag == 0)
-        {
             this->movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
-        }
     }
 }
-void Board::moveQueen(int xp, int yp, int xn, int yn, string side)
+void Board::moveQueen(int xp, int yp, int xn, int yn)
 {
     if(xp != xn && yn != yp)    /*If it is a bishop move*/
-        moveBishop(xp,yp,xn,yn,side);
+        moveBishop(xp,yp,xn,yn);
     else if((xp == xn && yn != yp) || (xp != xn && yn == yp))
-        moveRook(xp,yp,xn,yn,side);
+        moveRook(xp,yp,xn,yn);
 }
-void Board::moveKing(int xp, int yp, int xn, int yn, string side)
+void Board::moveKing(int xp, int yp, int xn, int yn)
 {
-    if(side == "White")
+    if(myBoard[xp][yp].getColor() == "White")
     {
         if(abs(xn - xp) > 1 || abs(yn - yp) > 1)
             cout << "Wrong move 1" << endl;
@@ -486,11 +518,10 @@ void Board::moveKing(int xp, int yp, int xn, int yn, string side)
         else
         {
             this->movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
         }
+            
     }
-    else if(side == "Black")
+    else if(myBoard[xp][yp].getColor() == "Black")
     {
         if(abs(xn - xp) > 1 || abs(yn - yp) > 1)
             cout << "Wrong move 1" << endl;
@@ -501,66 +532,99 @@ void Board::moveKing(int xp, int yp, int xn, int yn, string side)
         else
         {
             this->movePiece(xp,yp,xn,yn);
-            /*this->checkCheck*/
-            /*this->checkCheckMate*/
         }
     }
 }
-void Board::promotePawn(int xp, int yp)
+
+/*Score function to calculate overall goodness score*/
+void Board::checkDanger()
 {
-        if(myBoard[xp][yp].getColor() == "White" && myBoard[xp][yp].getType() == 'P')
+    /*Resetting the board*/
+    for(int i = 0; i < 8; i++)
+        for(int j = 0; j < 8; j++)
+            myBoard[i][j].setUnderAttack(false);
+    
+    /*Checking again*/
+    for(int i = 0; i < 8; i++)
+    {
+        for(int j = 0; j < 8; j++)
         {
-            if(yp == 7)
-            {
-                int i;
-                char newType;
-                cout << "Enter what piece you want to get (only one letter in uppercase and except K): ";  /*Ask for new type of piece*/
-                cin >> newType;
-                if(newType == 'K')
-                    return;
-                Pieces promotedPiece("White",newType,xp,yp);
-                myBoard[xp][yp+1] = promotedPiece;
-            }
+            if(myBoard[i][j].getType() == 'P' || myBoard[i][j].getType() == 'p')
+                threatOfPawn(i,j);
+            else if(myBoard[i][j].getType() == 'R' || myBoard[i][j].getType() == 'r')
+                threatOfRook(i,j);
+            else if(myBoard[i][j].getType() == 'N' || myBoard[i][j].getType() == 'n')
+                threatOfKnight(i,j);
+            else if(myBoard[i][j].getType() == 'B' || myBoard[i][j].getType() == 'b')
+                threatOfBishop(i,j);
+            else if(myBoard[i][j].getType() == 'Q' || myBoard[i][j].getType() == 'q')
+                threatOfQueen(i,j);
+            else if(myBoard[i][j].getType() == 'K' || myBoard[i][j].getType() == 'K')
+                threatOfKing(i,j);
         }
-        else if(myBoard[xp][yp].getColor() == "Black" && myBoard[xp][yp].getType() == 'p')
-        {
-            if(yp == 0)
-            {
-                int i;
-                char newType;
-                cout << "Enter what piece you want to get (only one letter in uppercase and except k): ";  /*Ask for new type of piece*/
-                cin >> newType;
-                if(newType == 'k')
-                    return;
-                Pieces promotedPiece("Black",newType,xp,yp);
-                myBoard[xp][yp-1] = promotedPiece;
-            }
-        }
+    }
 }
-/*Checking the under attack conditions*/
-void Board::attackPawn(int x, int y)
+void Board::overallGoodnessScore()
 {
-    if(myBoard[x][y].getColor() == "White") /*(0,1) -> (0,3) threads (1,4)*/
+    /*Setting scores to 39 at first*/
+    double whiteTotalScore = 139.0;
+    double blackTotalScore = 139.0;
+    checkDanger();
+    /*Searching every piece for underAttack*/
+    cout << endl;
+    for(int i = 0; i < 8; i++)
+    {
+        for(int j = 0; j < 8; j++)
+        {
+            if(myBoard[i][j].getColor() == "White" && myBoard[i][j].getUnderAttack())
+            {
+                whiteTotalScore -= 0.5 * myBoard[i][j].getPoint();
+            }
+            else if(myBoard[i][j].getColor() == "Black" && myBoard[i][j].getUnderAttack())
+            {
+                blackTotalScore -= 0.5 * myBoard[i][j].getPoint();
+            }
+            cout << myBoard[j][7-i].getUnderAttack() << "  ";
+        }
+        cout << endl;
+    }
+    cout << "White Score: " << whiteTotalScore << endl;
+    cout << "Black Score: " << blackTotalScore << endl;
+}
+
+/*Checking the threat functions*/
+void Board::threatOfPawn(int x, int y)
+{
+    if(myBoard[x][y].getColor() == "White") /*If pawn is white*/
     {
         if(x+1 < 8 && y+1 < 8)
-            if(myBoard[x+1][y+1].getColor() != "White")
+        {
+            if(myBoard[x+1][y+1].getColor() != "White") /*If attacking point is not white*/
                 myBoard[x+1][y+1].setUnderAttack(true);
+        }
         if(x-1 >= 0 && y+1 < 8)
+        {
             if(myBoard[x-1][y+1].getColor() != "White")
                 myBoard[x-1][y+1].setUnderAttack(true);  
-        
+        }
+
     }
-    else if(myBoard[x][y].getColor() == "Black")
+    else if(myBoard[x][y].getColor() == "Black")    /*If pawn is black*/
     {
         if(x+1 < 8 && y-1 >= 0)
-            if(myBoard[x+1][y-1].getColor() != "Black")
+        {
+            if(myBoard[x+1][y-1].getColor() != "Black") /*If attacking point is not black*/
                 myBoard[x+1][y-1].setUnderAttack(true);
-        if(x-1 >= 0 && y-1 >= 0)  
+        }
+        if(x-1 >= 0 && y-1 >= 0) 
+        {
             if(myBoard[x-1][y-1].getColor() != "Black")
                 myBoard[x-1][y-1].setUnderAttack(true);
+        }
+           
     }
 }
-void Board::attackRook(int x, int y)
+void Board::threatOfRook(int x, int y)
 {
     if(myBoard[x][y].getColor() == "White")
     {
@@ -666,7 +730,7 @@ void Board::attackRook(int x, int y)
         }
     }
 }
-void Board::attackKnight(int x, int y)
+void Board::threatOfKnight(int x, int y)
 {
     /*      (xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
             (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
@@ -679,42 +743,58 @@ void Board::attackKnight(int x, int y)
         if(x+1 < 8 && y+2 < 8)
         {
             if(myBoard[x+1][y+2].getColor() != "White")
+            {
                 myBoard[x+1][y+2].setUnderAttack(true);
+            }
         }
         if(x+1 < 8 && y-2 >= 0)
         {
             if(myBoard[x+1][y-2].getColor() != "White")
+            {
                 myBoard[x+1][y-2].setUnderAttack(true);
+            }
         }
         if(x-1 >= 0 && y+2 < 8)
         {
             if(myBoard[x-1][y+2].getColor() != "White")
+            {
                 myBoard[x-1][y+2].setUnderAttack(true);
+            }
         }
         if(x-1 >= 0 && y-2 >= 0)
         {
             if(myBoard[x-1][y-2].getColor() != "White")
+            {
                 myBoard[x-1][y-2].setUnderAttack(true);
+            }
         }
         if(x+2 < 8 && y+1 < 8) 
         {
             if(myBoard[x+2][y+1].getColor() != "White")
+            {
                 myBoard[x+2][y+1].setUnderAttack(true);
+            }
         }
         if(x-2 >= 0 && y+1 < 8)
         {
             if(myBoard[x-2][y+1].getColor() != "White")
+            {
                 myBoard[x-2][y+1].setUnderAttack(true);
+            }
         }    
         if(x+2 < 8 && y-1 >= 0)
         {
             if(myBoard[x+2][y-1].getColor() != "White")
+            {
                 myBoard[x+2][y-1].setUnderAttack(true);
+            }
         }
         if(x-2 >= 0 && y-1 >= 0)
         {
             if(myBoard[x-2][y-1].getColor() != "White")
+            {
                 myBoard[x-2][y-1].setUnderAttack(true);
+            }
         }
     }
     else if(myBoard[x][y].getColor() == "Black")
@@ -722,46 +802,63 @@ void Board::attackKnight(int x, int y)
         if(x+1 < 8 && y+2 < 8)
         {
             if(myBoard[x+1][y+2].getColor() != "Black")
+            {
                 myBoard[x+1][y+2].setUnderAttack(true);
+            }
         }
         if(x+1 < 8 && y-2 >= 0)
         {
             if(myBoard[x+1][y-2].getColor() != "Black")
+            {
                 myBoard[x+1][y-2].setUnderAttack(true);
+            }
+            
         }
         if(x-1 >= 0 && y+2 < 8)
         {
             if(myBoard[x-1][y+2].getColor() != "Black")
+            {
                 myBoard[x-1][y+2].setUnderAttack(true);
+            }
         }
         if(x-1 >= 0 && y-2 >= 0)
         {
             if(myBoard[x-1][y-2].getColor() != "Black")
+            {
                 myBoard[x-1][y-2].setUnderAttack(true);
+            }
         }
         if(x+2 < 8 && y+1 < 8) 
         {
             if(myBoard[x+2][y+1].getColor() != "Black")
+            {
                 myBoard[x+2][y+1].setUnderAttack(true);
+            }
         }
         if(x-2 >= 0 && y+1 < 8)
         {
             if(myBoard[x-2][y+1].getColor() != "Black")
+            {
                 myBoard[x-2][y+1].setUnderAttack(true);
+            }
         }    
         if(x+2 < 8 && y-1 >= 0)
         {
             if(myBoard[x+2][y-1].getColor() != "Black")
+            {
                 myBoard[x+2][y-1].setUnderAttack(true);
+            }
         }
         if(x-2 >= 0 && y-1 >= 0)
         {
             if(myBoard[x-2][y-1].getColor() != "Black")
+            {
                 myBoard[x-2][y-1].setUnderAttack(true);
+            }
         }
     }
 }
-void Board::attackBishop(int x, int y)
+void Board::threatOfBishop(int x, int y)
 {
     /*White*/
     if(myBoard[x][y].getColor() == "White")
@@ -893,11 +990,12 @@ void Board::attackBishop(int x, int y)
         }
     }
 }
-void Board::attackQueen(int x, int y)
+void Board::threatOfQueen(int x, int y)
 {
-    attackRook(x,y);
+    threatOfRook(x,y);
+    threatOfBishop(x,y);
 }
-void Board::attackKing(int x, int y)
+void Board::threatOfKing(int x, int y)
 {
     if(myBoard[x][y].getColor() == "White")
     {
@@ -920,60 +1018,442 @@ void Board::attackKing(int x, int y)
         }
     }
 }
-/*Score function to calculate overall goodness score*/
-void Board::checkDanger()
+
+/*Check and Check Mate functions*/
+bool Board::escapeKing(int x, int y)
 {
-    for(int i = 0; i < 8; i++)  /*Check every piece for danger*/
+        if(checkKingMovement(x,y,x+1,y)) return true;
+        else if(checkKingMovement(x,y,x,y+1)) return true;
+        else if(checkKingMovement(x,y,x-1,y)) return true;
+        else if(checkKingMovement(x,y,x,y-1)) return true;
+        else if(checkKingMovement(x,y,x+1,y+1)) return true;
+        else if(checkKingMovement(x,y,x-1,y-1)) return true;
+        else if(checkKingMovement(x,y,x-1,y+1)) return true;
+        else if(checkKingMovement(x,y,x+1,y-1)) return true;
+    return false;
+}
+bool Board::checkKingMovement(int xp, int yp, int xn, int yn)
+{
+    if(myBoard[xp][yp].getColor() == "White" && myBoard[xp][yp].getType() == 'K')
     {
-        for(int j = 0; j < 8; j++)
+        if(abs(xn - xp) > 1 || abs(yn - yp) > 1)
+            return false;
+        else if(isTherePieceWhite(xn,yn))
+            return false;
+        else if(!((xn == xp + 1 && yn == yp + 1) || (xn == xp - 1 && yn == yp + 1)) && isTherePieceBlack(xn,yn))
+            return false;
+        else
         {
-            if(myBoard[i][j].getType() == 'P' || myBoard[i][j].getType() == 'p')
-                attackPawn(i,j);
-            else if(myBoard[i][j].getType() == 'R' || myBoard[i][j].getType() == 'r')
-                attackRook(i,j);
-            else if(myBoard[i][j].getType() == 'N' || myBoard[i][j].getType() == 'n')
-                attackKnight(i,j);
-            else if(myBoard[i][j].getType() == 'B' || myBoard[i][j].getType() == 'b')
-                attackBishop(i,j);
-            else if(myBoard[i][j].getType() == 'Q' || myBoard[i][j].getType() == 'q')
-                attackQueen(i,j);
-            else if(myBoard[i][j].getType() == 'K' || myBoard[i][j].getType() == 'K')
-                attackKing(i,j);
+            this->movePiece(xp,yp,xn,yn);
+            return true;
+        }
+    }
+    else if(myBoard[xp][yp].getColor() == "Black" && myBoard[xp][yp].getType() == 'k')
+    {
+        if(abs(xn - xp) > 1 || abs(yn - yp) > 1)
+            return false;
+        else if(isTherePieceBlack(xn,yn))
+            return false;
+        else if(!((xn == xp + 1 && yn == yp - 1) || (xn == xp - 1 && yn == yp - 1)) && isTherePieceWhite(xn,yn))
+            return false;
+        else
+        {
+            this->movePiece(xp,yp,xn,yn);
+            return true;
         }
     }
 }
-void Board::overallGoodnessScore()
+bool Board::checkPawnMovement(int xp, int yp, int xn, int yn)
 {
-    /*Setting scores to 39 at first*/
-    double whiteTotalScore = 39.0;
-    double blackTotalScore = 39.0;
-    checkDanger();
-    /*Searching every piece for underAttack*/
-    cout << endl;
-    for(int i = 0; i < 8; i++)
+    if(myBoard[xp][yp].getColor() == "White" && myBoard[xp][yp].getType() == 'P')
     {
-        for(int j = 0; j < 8; j++)
+        if(yn <= yp)    /*check y-axis same or less*/
+            return false;
+        else if(isTherePieceWhite(xn,yn))   /*check isThere white piece*/
+            return false;
+        else if(yp != 1) /*if pawn is not in starting point*/
         {
-            if(myBoard[i][j].getColor() == "White" && myBoard[i][j].getUnderAttack())
+            if(yn > yp + 1 || xn > xp + 1 || xn < xp - 1)   /*yn bigger than 2 or xn bigger than 1*/
+                return false;
+            else if(xn == xp && isTherePieceBlack(xn,yn))   /*if p moves direct and there is a black piece*/
+                return false;
+            else if(xn != xp && ((xn > xp + 1 && xn < xp + 2) || (xn < xp - 1 && xn > xp - 2)) && isTherePieceBlack(xn,yn)) /*Eat if there is a black piece*/
             {
-                whiteTotalScore -= 0.5 * myBoard[i][j].getPoint();
+                this->promotePawn(xp,yp);
+                this->movePiece(xp,yp,xn,yn);
+                return true;
             }
-            else if(myBoard[i][j].getColor() == "Black" && myBoard[i][j].getUnderAttack())
+            else    /*Move if do not eat*/
             {
-                blackTotalScore -= 0.5 * myBoard[i][j].getPoint();
+                this->promotePawn(xp,yp);
+                this->movePiece(xp,yp,xn,yn);
+                return true;
             }
-            cout << myBoard[j][7-i].getUnderAttack() << " ";
         }
-        cout << endl;
+        else if (yp == 1)
+        {
+            if(yn > yp + 2)   /*yn bigger than 2 or xn bigger than 1*/
+                return false;
+            else if(xn == xp && yn == yn + 2 && (isTherePieceBlack(xn,yn+1) || isTherePieceWhite(xn,yn+1)))   /*if pawn moves direct and there is a black or white piece*/
+                return false;
+            else if((xn > xp || xn < xp) && !isTherePieceBlack(xn,yn))    /*if pawn moves diagnolly and there is no black piece*/
+                return false;
+            else if(xn > xp + 1 && xn < xp + 2  && isTherePieceBlack(xn,yn))
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }    
+            else
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }
+        }
     }
-    cout << "White Score: " << whiteTotalScore << endl;
-    cout << "Black Score: " << blackTotalScore << endl;
+    else if(myBoard[xp][yp].getColor() == "Black" && myBoard[xp][yp].getType() == 'p')
+    {
+        if(yn >= yp)    /*check y-axis same or higher*/
+            return false;
+        else if(isTherePieceBlack(xn,yn))   /*check isThere white piece*/
+            return false;
+        else if(yp != 6) /*if pawn is not in starting point*/
+        {
+            if(yn < yp - 1 || xn > xp + 1 || xn < xp - 1)   /*yn lower than 2 or xn bigger than 1*/
+                return false;
+            else if(xn == xp && isTherePieceWhite(xn,yn))   /*if p moves direct and there is a white piece*/
+                return false;
+            else if(xn != xp && ((xn > xp + 1 && xn < xp + 2) || (xn < xp - 1 && xn > xp - 2)) && isTherePieceWhite(xn,yn)) /*Eat if there is a black piece*/
+            {
+                this->promotePawn(xp,yp);
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }
+            else
+            {
+                this->promotePawn(xp,yp);
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }  
+        }
+        else if (yp == 6)
+        {
+            if(yn < yp - 2)   /*yn lower than 2 or xn bigger than 1*/
+                return false;
+            else if(xn == xp && yn == yn - 2 && (isTherePieceBlack(xn,yn+1) || isTherePieceWhite(xn,yn+1)))   /*if pawn moves direct and there is a black or white piece*/
+                return false;
+            else if((xn > xp || xn < xp) && !isTherePieceWhite(xn,yn))    /*if pawn moves diagnolly and there is no white piece*/
+                return false;
+            else if(xn > xp + 1 && xn < xp + 2  && isTherePieceWhite(xn,yn))
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return false;
+            }
+            else
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return false;
+            }
+        }
+    }
+    return false;
 }
-bool Board::checkCheck(int x, int y) const
+bool Board::checkRookMovement(int xp, int yp, int xn, int yn)
 {
-    /*check checkmate*/
+    if(myBoard[xp][yp].getColor() == "White" && myBoard[xp][yp].getType() == 'R')
+        if(isTherePieceWhite(xn,yn))
+            return false;
+    else if(myBoard[xp][yp].getColor() == "Black" && myBoard[xp][yp].getType() == 'R')
+        if(isTherePieceBlack(xn,yn))
+            return false;
+    if(myBoard[xp][yp].getType() == 'R' || myBoard[xp][yp].getType() == 'r')
+    {
+        if(yn != yp)
+        {
+            int flag = 0;
+            if(xn != xp)
+                return false;
+            else if(yn > yp && yn < 9 || yn > 0)
+            {
+                for(int i = yp; i < yn-yp; i++) /*2 - 7 = 3 , 4 , 5 , 5 , 6 , 7*/
+                {
+                    if(isTherePieceWhite(xp,i+1) || (isTherePieceBlack(xp,i+1) && i+1 != yn)) /*If between new and old coord. there is a white or black*/
+                    {
+                        flag = 1;
+                        return false;
+                    }
+                }
+                if(flag == 0)
+                {
+                    this->movePiece(xp,yp,xn,yn);
+                    return true;
+                }
+            }
+            else if(yn < yp && yn < 9 || yn > 0)
+            {
+                for(int i = yp; i > yp-yn; i--) /*2 - 7 = 3 , 4 , 5 , 5 , 6 , 7*/
+                {
+                    if(isTherePieceWhite(xp,i-1) || (isTherePieceBlack(xp,i-1) && i-1 != yn)) /*If between new and old coord. there is a white or black*/
+                    {
+                        flag = 1;
+                        return false;
+                    }
+                }
+                if(flag == 0)
+                {
+                    this->movePiece(xp,yp,xn,yn);
+                    return true;
+                }
+            }
+            else 
+                return false;
+        }
+        else if(xn != xp)
+        {
+            int flag = 0;
+            if(yn != yp)
+                return false;
+            else if(xn > xp && xn < 9 || xn > 0)
+            {
+                for(int i = xp; i < xn-xp; i++) /*2 - 7 = 2 , 3 , 4 , 5 , 6 , 7*/
+                {
+                    if(isTherePieceWhite(i+1,yp) || (isTherePieceBlack(i+1,yp) && i+1 != xn)) /*If between new and old coord. there is a white or black*/
+                    {
+                        flag = 1;
+                        return false;
+                    }
+                }
+                if(flag == 0)
+                {
+                    this->movePiece(xp,yp,xn,yn);
+                    return true;
+                }
+            }
+            else if(xn < xp && xn < 9 || xn > 0)
+            {
+                for(int i = xp; i > xp-xn; i--) /*2 - 7 = 2 , 3 , 4 , 5 , 6 , 7*/
+                {
+                    if(isTherePieceWhite(i-1,yp) || (isTherePieceBlack(i-1,yp) && i-1 != xn)) /*If between new and old coord. there is a white or black*/
+                    {
+                        flag = 1;
+                        return false;
+                    }
+                }
+                if(flag == 0)
+                {
+                    this->movePiece(xp,yp,xn,yn);
+                    return true;
+                }
+            }
+            else 
+                return false;
+        }
+    }
+    return false;
 }
-bool Board::checkCheckMate(int x, int y)
+bool Board::checkKnightMovement(int xp, int yp, int xn, int yn)
 {
-    /*isover = 1*/
+    if(myBoard[xp][yp].getColor() == "White" && myBoard[xp][yp].getType() == 'K')
+        if(((xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
+            (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
+            (xn == xp + 2 && yn == yp + 1) || (xn == xp - 2 && yn == yp + 1) ||
+            (xn == xp + 2 && yn == yp - 1) || (xn == xp - 2 && yn == yp - 1)) && !isTherePieceWhite(xn,yn))
+        {
+            movePiece(xp,yp,xn,yn);
+            return true;
+        }
+        else
+            return false;
+    if(myBoard[xp][yp].getColor() == "Black" && myBoard[xp][yp].getType() == 'k')
+        if(((xn == xp + 1 && yn == yp + 2) || (xn == xp - 1 && yn == yp + 2) || 
+            (xn == xp + 1 && yn == yp - 2) || (xn == xp - 1 && yn == yp - 2) || 
+            (xn == xp + 2 && yn == yp + 1) || (xn == xp - 2 && yn == yp + 1) ||
+            (xn == xp + 2 && yn == yp - 1) || (xn == xp - 2 && yn == yp - 1)) && !isTherePieceBlack(xn,yn))
+        {
+            movePiece(xp,yp,xn,yn);
+            return true;
+        }
+        else
+            return false;
+    return false;
+}
+bool Board::checkBishopMovement(int xp, int yp, int xn, int yn)
+{
+    if(myBoard[xp][yp].getType() == 'B' || myBoard[xp][yp].getType() == 'b')
+    {
+        int flag = 0;
+        if(abs(xn - xp) != abs(yn - yp))
+            return false;
+        if(xn > xp && yn > yp)
+        {
+            for(int i = xn, j = yn; i > xp, j > yp; i--, j--)
+            {
+                cout << i << " " << j << endl;
+                if(myBoard[xp][yp].getColor() == "White")
+                    if(isTherePieceWhite(i,j))
+                    {
+                        return false;
+                    }
+                if(myBoard[xp][yp].getColor() == "Black")
+                    if(isTherePieceBlack(i,j))
+                    {
+                        return false;
+                    }
+            }
+            if(flag == 0)
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }
+        }
+        if(xn > xp && yn < yp)
+        {
+            for(int i = xp, j = yn; i < xn, j < yp; i++, j++)
+            {
+                cout << i << " " << j << endl;
+                if(myBoard[xp][yp].getColor() == "White")
+                    if(isTherePieceWhite(i,j))
+                    {
+                        return false;
+                    }
+                if(myBoard[xp][yp].getColor() == "Black")
+                    if(isTherePieceBlack(i,j))
+                    {
+                        return false;
+                    }
+            }
+            if(flag == 0)
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }
+        }
+        if(xn < xp && yn > yp)
+        {
+            for(int i = xn, j = yn; i < xp, j > yp; i++, j--)
+            {
+                cout << i << " " << j << endl;
+                if(myBoard[xp][yp].getColor() == "White")
+                    if(isTherePieceWhite(i,j))
+                    {
+                        return false;
+                    }
+                if(myBoard[xp][yp].getColor() == "Black")
+                    if(isTherePieceBlack(i,j))
+                    {
+                        return false;
+                    }
+            }
+            if(flag == 0)
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }
+        }
+        if(xn < xp && yn < yp)
+        {
+            for(int i = xn, j = yn; i < xp, j < yp; i++, j++)
+            {
+                cout << i << " " << j << endl;
+                if(myBoard[xp][yp].getColor() == "White")
+                    if(isTherePieceWhite(i,j))
+                    {
+                        return false;
+                    }
+                if(myBoard[xp][yp].getColor() == "Black")
+                    if(isTherePieceBlack(i,j))
+                    {
+                        return false;
+                    }
+            }
+            if(flag == 0)
+            {
+                this->movePiece(xp,yp,xn,yn);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+bool Board::checkQueenMovement(int xp, int yp, int xn, int yn)
+{
+    if(xp != xn && yn != yp && (myBoard[xp][yp].getType() == 'Q' || myBoard[xp][yp].getType() == 'q'))    /*If it is a bishop move*/
+        checkBishopMovement(xp,yp,xn,yn);
+    else if((xp == xn && yn != yp) || (xp != xn && yn == yp) && (myBoard[xp][yp].getType() == 'Q' || myBoard[xp][yp].getType() == 'q'))
+        checkRookMovement(xp,yp,xn,yn);
+    return false;
+}
+
+bool Board::checkEveryMovement(int xp, int yp, int xn, int yn)
+{
+    return(checkPawnMovement(xp,yp,xn,yn) || checkRookMovement(xp,yp,xn,yn) || checkKnightMovement(xp,yp,xn,yn) ||
+           checkBishopMovement(xp,yp,xn,yn) || checkQueenMovement(xp,yp,xn,yn));
+}
+bool Board::checkTheCheck(int xk, int yk)
+{
+    if(myBoard[xk][yk].getUnderAttack())
+        return true;
+}
+bool Board::checkTheCheckMate(int xk, int yk)
+{
+    /*If king is in threat, it will be sent to this function.First we make that player of the
+    opponent cannot move any other piece rather than saving the king. Second we check
+    if king can move and get out of the Check. If it cant, then finally we will check for every
+    friend piece of the king can get the king out of the check.If it doesnt work then game is over*/
+
+    /*x = x of king, y = y of king, type = type of the opponent*/
+    bool flag = true;
+    if(this->escapeKing(xk,yk))
+        return false;
+    else
+    {
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                for(int k = 0; k < 8; k++)
+                {
+                    for(int m = 0; m < 8; m++)
+                    {
+                        if(checkEveryMovement(i,j,k,m) && myBoard[xk][yk].getUnderAttack() == false)
+                            flag = false;
+                    }
+                }
+            }
+        }
+        return flag;
+    }
+
+}
+
+/*Other rules for chess*/
+void Board::promotePawn(int xp, int yp)
+{
+        if(myBoard[xp][yp].getColor() == "White" && myBoard[xp][yp].getType() == 'P')
+        {
+            if(yp == 7)
+            {
+                int i;
+                char newType;
+                cout << "Enter what piece you want to get (only one letter in uppercase and except K): ";  /*Ask for new type of piece*/
+                cin >> newType;
+                if(newType == 'K')
+                    return;
+                Pieces promotedPiece("White",newType,xp,yp);
+                myBoard[xp][yp+1] = promotedPiece;
+            }
+        }
+        else if(myBoard[xp][yp].getColor() == "Black" && myBoard[xp][yp].getType() == 'p')
+        {
+            if(yp == 0)
+            {
+                int i;
+                char newType;
+                cout << "Enter what piece you want to get (only one letter in uppercase and except k): ";  /*Ask for new type of piece*/
+                cin >> newType;
+                if(newType == 'k')
+                    return;
+                Pieces promotedPiece("Black",newType,xp,yp);
+                myBoard[xp][yp-1] = promotedPiece;
+            }
+        }
 }
