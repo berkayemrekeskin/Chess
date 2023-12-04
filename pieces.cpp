@@ -1,9 +1,10 @@
 #include <iostream>
-#include "chess.hpp"
+#include "board.hpp"
+#include "pieces.hpp"
 using namespace std;
+
+/*-------------------------------PIECES FUNCTIONS-------------------------------*/
 /*CONSTRUCTOR*/
-
-
 Pieces::Pieces(string _color, char _type, int _x, int _y)
 : color(_color), type(_type), x_coord(_x), y_coord(_y), isUnderAttack(false) 
 {
@@ -34,7 +35,6 @@ Pieces::Pieces(string _color, char _type, int _x, int _y)
     else if(color == "Empty")
         point = 0;
 }
-
 /*GETTERS*/
 string Pieces::getColor() const {return color; }
 int Pieces::getXCoord() const { return x_coord; }
@@ -42,7 +42,6 @@ int Pieces::getYCoord() const { return y_coord; }
 char Pieces::getType() const { return type; }
 double Pieces::getPoint() const { return point; }
 bool Pieces::getUnderAttack() const { return isUnderAttack; }
-
 /*SETTERS*/
 void Pieces::setType(char _type) { this->type = _type; }
 void Pieces::setXCoord(int _x) { this->x_coord = _x; }
